@@ -5,15 +5,12 @@
   "outputDirectory": ".",
   "installCommand": "npm install",
   "routes": [
-    { "src": "/api/(.*)", "dest": "/src/server.js" },
-    { "src": "/(.*)", "dest": "/src/server.js" }
+    { "src": "/js/(.*)", "dest": "/js/$1" },
+    { "src": "/css/(.*)", "dest": "/css/$1" },
+    { "src": "/pages/(.*)", "dest": "/pages/$1" },
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "src": "/(.*)", "dest": "/api/index.js" }
   ],
-  "functions": {
-    "src/server.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }

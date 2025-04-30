@@ -136,20 +136,26 @@ MIT
 
 Para fazer o deploy do projeto na Vercel, siga estes passos:
 
-1. Crie uma conta na Vercel (https://vercel.com)
-2. Instale a CLI da Vercel: `npm i -g vercel`
-3. Faça login na sua conta: `vercel login`
-4. Configure as variáveis de ambiente no dashboard da Vercel:
+1. Certifique-se de que o repositório está atualizado no GitHub
+2. Conecte a Vercel ao seu repositório GitHub
+3. Configure as variáveis de ambiente no dashboard da Vercel:
    - `DATABASE_URL`: URL de conexão do banco de dados MySQL
    - `JWT_SECRET`: Chave secreta para geração dos tokens JWT
    - `NODE_ENV`: Deve ser configurado como "production"
 
-5. Execute o comando de deploy: `vercel --prod`
+### Estrutura para Deploy na Vercel
+
+O projeto segue uma estrutura específica para funcionar corretamente na Vercel:
+
+- A pasta `api/` contém os arquivos de entrada para o serverless environment da Vercel
+- O arquivo `api/index.js` é o ponto de entrada principal
+- O arquivo `vercel.json` define as rotas e configurações do deployment
+- O script `prisma/vercel-build.js` gerencia a geração do Prisma Client durante o build
 
 ### Requisitos para o Banco de Dados
 
 Para o projeto funcionar corretamente na Vercel, é necessário usar um banco de dados MySQL hospedado externamente. Recomendamos:
-- PlanetScale
+- PlanetScale (recomendado para Vercel)
 - Amazon RDS
 - Azure Database for MySQL
 - Google Cloud SQL 

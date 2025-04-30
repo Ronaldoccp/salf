@@ -154,11 +154,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Inicia o servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Vercel: ${process.env.VERCEL === '1' ? 'Sim' : 'Não'}`);
-});
+// Inicia o servidor apenas quando executado diretamente (não quando importado)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Vercel: ${process.env.VERCEL === '1' ? 'Sim' : 'Não'}`);
+  });
+} else {
+  console.log('Servidor exportado como módulo (não iniciado diretamente)');
+}
 
+// Exportar o aplicativo para uso como módulo
 module.exports = app; 

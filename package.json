@@ -2,9 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "API do Sistema de Avaliação, Leitura e Fluência",
-  "main": "src/server.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node api/index.js",
     "dev": "nodemon src/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "npx prisma migrate dev",
