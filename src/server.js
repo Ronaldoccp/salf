@@ -60,9 +60,17 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
-// Inicialização da aplicação
+// Inicialização da aplicação com tratamento de erro para o Prisma
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Adicionar middleware para tratamento de erro do Prisma
+app.use((req, res, next) => {
+  res.on('error', (error) => {
+    console.error('Erro na resposta:', error);
+  });
+  next();
+});
 
 // Configuração de CORS para permitir acesso de qualquer origem em produção
 app.use(cors({
@@ -112,6 +120,15 @@ app.get('/api', (req, res) => {
   });
 });
 
+// Rota para verificar status do servidor
+app.get('/status', (req, res) => {
+  res.json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Em produção, roteie todas as outras requisições para o frontend
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
@@ -128,9 +145,20 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Tratamento global de erros
+app.use((err, req, res, next) => {
+  console.error('Erro global:', err);
+  res.status(500).json({
+    error: 'Erro interno do servidor',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Ocorreu um erro ao processar sua solicitação'
+  });
+});
+
 // Inicia o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Vercel: ${process.env.VERCEL === '1' ? 'Sim' : 'Não'}`);
 });
 
 module.exports = app; 

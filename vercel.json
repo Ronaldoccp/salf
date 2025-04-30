@@ -1,15 +1,19 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "src/server.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": ".",
+  "installCommand": "npm install",
   "routes": [
     { "src": "/api/(.*)", "dest": "/src/server.js" },
     { "src": "/(.*)", "dest": "/src/server.js" }
   ],
+  "functions": {
+    "src/server.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
   "env": {
     "NODE_ENV": "production"
   }
