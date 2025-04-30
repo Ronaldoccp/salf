@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "css/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pages/**/*.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/src/server.js" },
+    { "source": "/api-docs", "destination": "/src/server.js" },
+    { "source": "/api-docs/(.*)", "destination": "/src/server.js" },
+    { "source": "/pages/(.*)", "destination": "/pages/$1" },
+    { "source": "/js/(.*)", "destination": "/js/$1" },
+    { "source": "/css/(.*)", "destination": "/css/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+} 
