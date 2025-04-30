@@ -11,8 +11,7 @@
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
     "build": "prisma generate",
-    "vercel-build": "node prisma/vercel-build.js",
-    "postinstall": "node prisma/vercel-build.js"
+    "vercel-build": "prisma generate"
   },
   "keywords": ["educação", "leitura", "avaliação", "fluência"],
   "author": "Equipe SALF",

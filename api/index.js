@@ -33,11 +33,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Servir arquivos estáticos na raiz
+// Servir arquivos estáticos da raiz do projeto
 app.use(express.static(path.join(__dirname, '../')));
-app.use('/pages', express.static(path.join(__dirname, '../pages')));
-app.use('/js', express.static(path.join(__dirname, '../js')));
-app.use('/css', express.static(path.join(__dirname, '../css')));
 
 // Rotas
 app.use('/api/usuarios', usuarioRoutes);

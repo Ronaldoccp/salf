@@ -1,0 +1,2 @@
+Este é um arquivo de marcador para garantir que a pasta public seja incluída no controle de versão.
+Todos os arquivos estáticos (HTML, CSS, JS) serão copiados para esta pasta durante o build. 
