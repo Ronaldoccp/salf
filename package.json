@@ -10,7 +10,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
-    "build": "node prisma/vercel-build.js",
+    "build": "prisma generate",
     "vercel-build": "node prisma/vercel-build.js",
     "postinstall": "node prisma/vercel-build.js"
   },
