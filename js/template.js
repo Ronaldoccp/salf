@@ -84,7 +84,7 @@ function loadTemplate() {
     // Menus específicos por papel
     if (userRole === 'admin' || userRole === 'coordenador') {
         menuItems += `
-            <a href="/pages/escola/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/escola/') ? 'bg-blue-700' : ''}">
+            <a href="/pages/escola/gerenciar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/escola/') ? 'bg-blue-700' : ''}">
                 <i class="fas fa-school w-6"></i>
                 <span>Escolas</span>
             </a>
