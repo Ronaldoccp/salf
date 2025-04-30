@@ -160,12 +160,10 @@
             loadInlineTemplate();
         });
     </script>
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- API Inline Script - Adicionado para resolver problemas de carregamento na Vercel -->
+
+    <!-- API de Dados Simulados - Início -->
     <script>
-        console.log('Definindo API inline para evitar erros de carregamento');
-        // Dados simulados para fallback
+        // Dados simulados para o sistema
         const MOCK_DATA = {
             regioes: [
                 { id: 1, nome: "Região 1", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
@@ -206,14 +204,9 @@
                 }
             ]
         };
-        
-        // Definir o objeto API globalmente
+
+        // Definir API global
         window.API = {
-            auth: {
-                login: async () => ({ token: 'token-simulado', usuario: { email: 'usuario@exemplo.com', nome: 'Usuário Padrão', tipo: 'admin' }}),
-                verificarToken: async () => ({ valid: true, usuario: { email: 'usuario@exemplo.com', nome: 'Usuário Padrão', tipo: 'admin' }}),
-                logout: () => console.log('Logout simulado')
-            },
             regioes: {
                 listar: async () => MOCK_DATA.regioes,
                 buscarPorId: async (id) => MOCK_DATA.regioes.find(r => r.id === parseInt(id))
@@ -224,6 +217,7 @@
             },
             escolas: {
                 listar: async (filtros = {}) => {
+                    console.log('Listando escolas com filtros:', filtros);
                     let result = [...MOCK_DATA.escolas];
                     
                     if (filtros.regiaoId) {
@@ -243,6 +237,7 @@
                 },
                 buscarPorId: async (id) => MOCK_DATA.escolas.find(e => e.id === parseInt(id)),
                 criar: async (dadosEscola) => {
+                    console.log('Criando escola:', dadosEscola);
                     const maxId = MOCK_DATA.escolas.reduce((max, escola) => Math.max(max, escola.id), 0);
                     
                     const novaEscola = {
@@ -272,6 +267,7 @@
                     return novaEscola;
                 },
                 atualizar: async (id, dadosEscola) => {
+                    console.log('Atualizando escola:', id, dadosEscola);
                     const index = MOCK_DATA.escolas.findIndex(e => e.id === parseInt(id));
                     
                     if (index === -1) {
@@ -302,6 +298,7 @@
                     return escolaAtualizada;
                 },
                 excluir: async (id) => {
+                    console.log('Excluindo escola:', id);
                     const index = MOCK_DATA.escolas.findIndex(e => e.id === parseInt(id));
                     
                     if (index === -1) {
@@ -311,19 +308,345 @@
                     MOCK_DATA.escolas.splice(index, 1);
                     return { success: true };
                 }
-            },
-            turmas: {
-                listar: async () => [],
-                buscarPorId: async () => null,
-                buscarAlunosDaTurma: async () => []
-            },
-            alunos: {
-                listar: async () => [],
-                buscarPorId: async () => null
             }
         };
     </script>
+    <!-- API de Dados Simulados - Fim -->
 
+    <!-- Lógica de Gerenciamento de Escolas - Início -->
+    <script>
+        // Este script contém toda a lógica de gerenciamento de escolas
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Inicializando página de escolas...');
+            
+            // Referências aos elementos DOM
+            const btnNovaEscola = document.getElementById('btn-nova-escola');
+            const modalEscola = document.getElementById('modal-escola');
+            const fecharModal = document.getElementById('fechar-modal');
+            const cancelarEscola = document.getElementById('cancelar-escola');
+            const formEscola = document.getElementById('form-escola');
+            const filtroRegiao = document.getElementById('filtro-regiao');
+            const filtroGrupo = document.getElementById('filtro-grupo');
+            const pesquisa = document.getElementById('pesquisa');
+            
+            // Armazenar dados locais
+            let escolas = [];
+            let regioes = [];
+            let grupos = [];
+            
+            // Carregar dados iniciais
+            try {
+                await carregarDados();
+                console.log('Dados iniciais carregados com sucesso');
+            } catch (error) {
+                console.error('Erro ao carregar dados iniciais:', error);
+                // Tentar carregar apenas as escolas
+                try {
+                    escolas = await API.escolas.listar();
+                    atualizarTabela();
+                } catch (innerError) {
+                    console.error('Erro crítico ao carregar dados:', innerError);
+                }
+            }
+            
+            // Configurar event listeners
+            if (btnNovaEscola) btnNovaEscola.addEventListener('click', abrirModal);
+            if (fecharModal) fecharModal.addEventListener('click', fecharModalEscola);
+            if (cancelarEscola) cancelarEscola.addEventListener('click', fecharModalEscola);
+            if (formEscola) formEscola.addEventListener('submit', salvarEscola);
+            if (filtroRegiao) filtroRegiao.addEventListener('change', filtrarEscolas);
+            if (filtroGrupo) filtroGrupo.addEventListener('change', filtrarEscolas);
+            if (pesquisa) pesquisa.addEventListener('input', filtrarEscolas);
+            
+            // Configurar eventos para os botões de editar e excluir
+            configurarBotoes();
+            
+            // Funções de gerenciamento
+            async function carregarDados() {
+                try {
+                    // Carregar as regiões
+                    regioes = await API.regioes.listar();
+                    console.log('Regiões carregadas:', regioes);
+                    
+                    // Preencher o select de regiões
+                    const regiaoSelect = document.getElementById('regiao-escola');
+                    const filtroRegiaoSelect = document.getElementById('filtro-regiao');
+                    
+                    if (regiaoSelect) {
+                        regiaoSelect.innerHTML = '<option value="">Selecione uma região</option>';
+                        regioes.forEach(regiao => {
+                            const option = document.createElement('option');
+                            option.value = regiao.id;
+                            option.textContent = regiao.nome;
+                            regiaoSelect.appendChild(option);
+                        });
+                    }
+                    
+                    if (filtroRegiaoSelect) {
+                        filtroRegiaoSelect.innerHTML = '<option value="">Todas as regiões</option>';
+                        regioes.forEach(regiao => {
+                            const option = document.createElement('option');
+                            option.value = regiao.id;
+                            option.textContent = regiao.nome;
+                            filtroRegiaoSelect.appendChild(option);
+                        });
+                    }
+                    
+                    // Carregar os grupos
+                    grupos = await API.grupos.listar();
+                    console.log('Grupos carregados:', grupos);
+                    
+                    // Preencher o select de grupos
+                    const grupoSelect = document.getElementById('grupo-escola');
+                    const filtroGrupoSelect = document.getElementById('filtro-grupo');
+                    
+                    if (grupoSelect) {
+                        grupoSelect.innerHTML = '<option value="">Selecione um grupo</option>';
+                        grupos.forEach(grupo => {
+                            const option = document.createElement('option');
+                            option.value = grupo.id;
+                            option.textContent = grupo.nome;
+                            grupoSelect.appendChild(option);
+                        });
+                    }
+                    
+                    if (filtroGrupoSelect) {
+                        filtroGrupoSelect.innerHTML = '<option value="">Todos os grupos</option>';
+                        grupos.forEach(grupo => {
+                            const option = document.createElement('option');
+                            option.value = grupo.id;
+                            option.textContent = grupo.nome;
+                            filtroGrupoSelect.appendChild(option);
+                        });
+                    }
+                    
+                    // Carregar as escolas
+                    await carregarEscolas();
+                } catch (error) {
+                    console.error('Erro ao carregar dados iniciais:', error);
+                    throw error;
+                }
+            }
+            
+            async function carregarEscolas() {
+                try {
+                    const filtros = {};
+                    
+                    if (filtroRegiao && filtroRegiao.value) {
+                        filtros.regiaoId = filtroRegiao.value;
+                    }
+                    
+                    if (filtroGrupo && filtroGrupo.value) {
+                        filtros.grupoId = filtroGrupo.value;
+                    }
+                    
+                    if (pesquisa && pesquisa.value) {
+                        filtros.search = pesquisa.value;
+                    }
+                    
+                    console.log('Carregando escolas com filtros:', filtros);
+                    escolas = await API.escolas.listar(filtros);
+                    console.log('Escolas carregadas:', escolas);
+                    atualizarTabela();
+                } catch (error) {
+                    console.error('Erro ao carregar escolas:', error);
+                    atualizarTabela(); // Atualizar com dados vazios ou atuais
+                }
+            }
+            
+            function filtrarEscolas() {
+                carregarEscolas();
+            }
+            
+            function abrirModal() {
+                modalEscola.classList.remove('hidden');
+                document.getElementById('nome-escola').focus();
+                
+                // Limpar o formulário
+                formEscola.reset();
+                formEscola.removeAttribute('data-editing-id');
+                
+                // Restaurar o botão de salvar
+                const btnSubmit = formEscola.querySelector('button[type="submit"]');
+                btnSubmit.textContent = 'Salvar';
+            }
+            
+            function fecharModalEscola() {
+                modalEscola.classList.add('hidden');
+                formEscola.reset();
+                formEscola.removeAttribute('data-editing-id');
+            }
+            
+            async function salvarEscola(e) {
+                e.preventDefault();
+                
+                const nomeEscola = document.getElementById('nome-escola').value;
+                const regiaoId = document.getElementById('regiao-escola').value;
+                const grupoId = document.getElementById('grupo-escola').value;
+                
+                if (!nomeEscola) {
+                    alert('Por favor, informe o nome da escola.');
+                    return;
+                }
+                
+                if (!regiaoId) {
+                    alert('Por favor, selecione a região da escola.');
+                    return;
+                }
+                
+                // Preparar os dados da escola
+                const dadosEscola = {
+                    nome: nomeEscola,
+                    regiaoId: Number(regiaoId),
+                    grupoId: grupoId ? Number(grupoId) : null
+                };
+                
+                try {
+                    const idEdicao = formEscola.getAttribute('data-editing-id');
+                    
+                    if (idEdicao) {
+                        // Atualizar uma escola existente
+                        await API.escolas.atualizar(Number(idEdicao), dadosEscola);
+                        alert('Escola atualizada com sucesso!');
+                    } else {
+                        // Criar uma nova escola
+                        await API.escolas.criar(dadosEscola);
+                        alert('Escola cadastrada com sucesso!');
+                    }
+                    
+                    // Recarregar as escolas e fechar o modal
+                    await carregarEscolas();
+                    fecharModalEscola();
+                    
+                } catch (error) {
+                    console.error('Erro ao salvar escola:', error);
+                    alert(error.message || 'Erro ao salvar escola. Por favor, tente novamente mais tarde.');
+                }
+            }
+            
+            function atualizarTabela() {
+                const tbody = document.querySelector('table tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                if (escolas.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            Nenhuma escola encontrada
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    return;
+                }
+                
+                escolas.forEach(escola => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${escola.id}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${escola.nome}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${escola.regiao ? escola.regiao.nome : '-'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${escola.grupo ? escola.grupo.nome : '-'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${escola._count && escola._count.turmas !== undefined ? escola._count.turmas : 0}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${escola._count && escola._count.alunos !== undefined ? escola._count.alunos : 0}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 mr-3 btn-editar" data-id="${escola.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-900 btn-excluir" data-id="${escola.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                // Reconfigura os botões após atualizar a tabela
+                configurarBotoes();
+                
+                // Atualizar contador de resultados
+                const resultadosMsg = document.querySelector('.bg-white.px-4.py-3 .text-sm.text-gray-700');
+                if (resultadosMsg) {
+                    resultadosMsg.innerHTML = `
+                        Mostrando <span class="font-medium">${escolas.length}</span> resultados
+                    `;
+                }
+            }
+            
+            function configurarBotoes() {
+                // Botões de editar
+                document.querySelectorAll('.btn-editar').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        editarEscola(id);
+                    });
+                });
+                
+                // Botões de excluir
+                document.querySelectorAll('.btn-excluir').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        excluirEscola(id);
+                    });
+                });
+            }
+            
+            async function editarEscola(id) {
+                try {
+                    // Buscar os dados da escola
+                    const escola = await API.escolas.buscarPorId(id);
+                    
+                    if (escola) {
+                        document.getElementById('nome-escola').value = escola.nome;
+                        document.getElementById('regiao-escola').value = escola.regiaoId;
+                        document.getElementById('grupo-escola').value = escola.grupoId || '';
+                        
+                        // Modificar o formulário para modo de edição
+                        formEscola.setAttribute('data-editing-id', id);
+                        
+                        // Alterar o texto do botão para "Atualizar"
+                        const btnSubmit = formEscola.querySelector('button[type="submit"]');
+                        btnSubmit.textContent = 'Atualizar';
+                        
+                        // Abrir o modal
+                        modalEscola.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar dados da escola:', error);
+                    alert(error.message || 'Erro ao buscar dados da escola. Por favor, tente novamente mais tarde.');
+                }
+            }
+            
+            async function excluirEscola(id) {
+                if (confirm('Tem certeza que deseja excluir esta escola?')) {
+                    try {
+                        await API.escolas.excluir(id);
+                        alert('Escola excluída com sucesso!');
+                        await carregarEscolas();
+                    } catch (error) {
+                        console.error('Erro ao excluir escola:', error);
+                        alert(error.message || 'Erro ao excluir escola. Por favor, tente novamente mais tarde.');
+                    }
+                }
+            }
+        });
+    </script>
+    <!-- Lógica de Gerenciamento de Escolas - Fim -->
+</head>
+<body class="bg-gray-100 min-h-screen">
     <div class="flex h-screen bg-gray-100">
         <!-- Sidebar -->
         <div id="sidebar-container"></div>
@@ -355,13 +678,28 @@
                         
                         <!-- Filtro e pesquisa -->
                         <div class="p-4 bg-gray-50 border-b">
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <div class="relative flex-1">
-                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text" placeholder="Pesquisar escolas..." 
-                                        class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label for="filtro-regiao" class="block text-sm font-medium text-gray-700 mb-1">Região</label>
+                                    <select id="filtro-regiao" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Todas as regiões</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="filtro-grupo" class="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
+                                    <select id="filtro-grupo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Todos os grupos</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="pesquisa" class="block text-sm font-medium text-gray-700 mb-1">Pesquisar</label>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" id="pesquisa" placeholder="Nome da escola..." 
+                                            class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -395,61 +733,10 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    <!-- Dados de exemplo -->
+                                    <!-- Os dados serão carregados via JavaScript -->
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            1
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">Escola Municipal João da Silva</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            Norte
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            Municipal
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            8
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            240
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button class="text-blue-600 hover:text-blue-900 mr-3">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-900">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            2
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">Escola Estadual Maria José</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            Sul
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            Estadual
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            12
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            360
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button class="text-blue-600 hover:text-blue-900 mr-3">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-900">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                            Carregando escolas...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -461,23 +748,8 @@
                             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
                                     <p class="text-sm text-gray-700">
-                                        Mostrando <span class="font-medium">1</span> a <span class="font-medium">2</span> de <span class="font-medium">2</span> resultados
+                                        Mostrando <span class="font-medium">0</span> resultados
                                     </p>
-                                </div>
-                                <div>
-                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <span class="sr-only">Anterior</span>
-                                            <i class="fas fa-chevron-left h-5 w-5"></i>
-                                        </a>
-                                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600 hover:bg-blue-100">
-                                            1
-                                        </a>
-                                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <span class="sr-only">Próximo</span>
-                                            <i class="fas fa-chevron-right h-5 w-5"></i>
-                                        </a>
-                                    </nav>
                                 </div>
                             </div>
                         </div>
@@ -531,7 +803,5 @@
             </form>
         </div>
     </div>
-    
-    <script src="/js/escola.js"></script>
 </body>
 </html> 
