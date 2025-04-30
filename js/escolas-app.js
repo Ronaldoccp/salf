@@ -64,6 +64,15 @@ document.addEventListener('DOMContentLoaded', function() {
         grupoEscola: document.getElementById('grupo-escola')
     };
     
+    // Verificar elementos críticos
+    console.log('Verificando elementos críticos:');
+    console.log('- btnNovaEscola:', elementos.btnNovaEscola ? 'OK' : 'NÃO ENCONTRADO');
+    console.log('- modalEscola:', elementos.modalEscola ? 'OK' : 'NÃO ENCONTRADO');
+    console.log('- formEscola:', elementos.formEscola ? 'OK' : 'NÃO ENCONTRADO');
+    console.log('- nomeEscola:', elementos.nomeEscola ? 'OK' : 'NÃO ENCONTRADO');
+    console.log('- regiaoEscola:', elementos.regiaoEscola ? 'OK' : 'NÃO ENCONTRADO');
+    console.log('- grupoEscola:', elementos.grupoEscola ? 'OK' : 'NÃO ENCONTRADO');
+    
     // Estado da aplicação
     const estado = {
         escolas: [...DADOS_SIMULADOS.escolas],
@@ -83,34 +92,88 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Funções de inicialização
     function inicializarDados() {
-        // Preencher selects de regiões
-        preencherSelect(elementos.regiaoEscola, DADOS_SIMULADOS.regioes, 'Selecione uma região');
-        preencherSelect(elementos.filtroRegiao, DADOS_SIMULADOS.regioes, 'Todas as regiões');
+        console.log('Inicializando dados...');
         
-        // Preencher selects de grupos
-        preencherSelect(elementos.grupoEscola, DADOS_SIMULADOS.grupos, 'Selecione um grupo');
-        preencherSelect(elementos.filtroGrupo, DADOS_SIMULADOS.grupos, 'Todos os grupos');
-        
-        // Carregar escolas iniciais
-        atualizarTabelaEscolas();
+        try {
+            // Preencher selects de regiões
+            preencherSelect(elementos.regiaoEscola, DADOS_SIMULADOS.regioes, 'Selecione uma região');
+            preencherSelect(elementos.filtroRegiao, DADOS_SIMULADOS.regioes, 'Todas as regiões');
+            
+            // Preencher selects de grupos
+            preencherSelect(elementos.grupoEscola, DADOS_SIMULADOS.grupos, 'Selecione um grupo');
+            preencherSelect(elementos.filtroGrupo, DADOS_SIMULADOS.grupos, 'Todos os grupos');
+            
+            // Carregar escolas iniciais
+            atualizarTabelaEscolas();
+            
+            console.log('Dados inicializados com sucesso!');
+        } catch (error) {
+            console.error('Erro ao inicializar dados:', error);
+        }
     }
     
     function configurarEventos() {
-        // Eventos do modal
-        if (elementos.btnNovaEscola) elementos.btnNovaEscola.addEventListener('click', abrirModalNovaEscola);
-        if (elementos.fecharModal) elementos.fecharModal.addEventListener('click', fecharModal);
-        if (elementos.cancelarEscola) elementos.cancelarEscola.addEventListener('click', fecharModal);
-        if (elementos.formEscola) elementos.formEscola.addEventListener('submit', salvarEscola);
+        console.log('Configurando eventos...');
         
-        // Eventos de filtro
-        if (elementos.filtroRegiao) elementos.filtroRegiao.addEventListener('change', aplicarFiltros);
-        if (elementos.filtroGrupo) elementos.filtroGrupo.addEventListener('change', aplicarFiltros);
-        if (elementos.pesquisa) elementos.pesquisa.addEventListener('input', aplicarFiltros);
+        try {
+            // Evento de abrir o modal (botão Nova Escola)
+            if (elementos.btnNovaEscola) {
+                console.log('Configurando evento para botão Nova Escola');
+                elementos.btnNovaEscola.addEventListener('click', function() {
+                    console.log('Botão Nova Escola clicado');
+                    abrirModal();
+                });
+            }
+            
+            // Eventos do modal para fechar
+            if (elementos.fecharModal) {
+                elementos.fecharModal.addEventListener('click', function() {
+                    console.log('Botão Fechar Modal clicado');
+                    fecharModal();
+                });
+            }
+            
+            if (elementos.cancelarEscola) {
+                elementos.cancelarEscola.addEventListener('click', function() {
+                    console.log('Botão Cancelar clicado');
+                    fecharModal();
+                });
+            }
+            
+            // Evento de submit do formulário
+            if (elementos.formEscola) {
+                console.log('Configurando evento para formulário');
+                elementos.formEscola.addEventListener('submit', function(e) {
+                    console.log('Formulário enviado');
+                    salvarEscola(e);
+                });
+            }
+            
+            // Eventos de filtro
+            if (elementos.filtroRegiao) {
+                elementos.filtroRegiao.addEventListener('change', aplicarFiltros);
+            }
+            
+            if (elementos.filtroGrupo) {
+                elementos.filtroGrupo.addEventListener('change', aplicarFiltros);
+            }
+            
+            if (elementos.pesquisa) {
+                elementos.pesquisa.addEventListener('input', aplicarFiltros);
+            }
+            
+            console.log('Eventos configurados com sucesso!');
+        } catch (error) {
+            console.error('Erro ao configurar eventos:', error);
+        }
     }
     
     // Funções auxiliares
     function preencherSelect(selectElement, opcoes, textoDefault) {
-        if (!selectElement) return;
+        if (!selectElement) {
+            console.warn(`Select não encontrado para preenchimento: ${textoDefault}`);
+            return;
+        }
         
         selectElement.innerHTML = '';
         
@@ -127,21 +190,32 @@ document.addEventListener('DOMContentLoaded', function() {
             option.textContent = opcao.nome;
             selectElement.appendChild(option);
         });
+        
+        console.log(`Select preenchido: ${textoDefault} com ${opcoes.length} opções`);
     }
     
     // Funções de manipulação de escolas
     function aplicarFiltros() {
+        console.log('Aplicando filtros...');
+        
         // Atualizar estado dos filtros
         estado.filtros.regiaoId = elementos.filtroRegiao ? elementos.filtroRegiao.value : '';
         estado.filtros.grupoId = elementos.filtroGrupo ? elementos.filtroGrupo.value : '';
         estado.filtros.search = elementos.pesquisa ? elementos.pesquisa.value.toLowerCase() : '';
+        
+        console.log('Filtros atualizados:', estado.filtros);
         
         // Atualizar tabela com os novos filtros
         atualizarTabelaEscolas();
     }
     
     function atualizarTabelaEscolas() {
-        if (!elementos.tbody) return;
+        console.log('Atualizando tabela de escolas...');
+        
+        if (!elementos.tbody) {
+            console.error('Elemento tbody não encontrado!');
+            return;
+        }
         
         // Aplicar filtros
         let escolasFiltradas = [...estado.escolas];
@@ -163,6 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 escola.nome.toLowerCase().includes(estado.filtros.search)
             );
         }
+        
+        console.log(`Encontradas ${escolasFiltradas.length} escolas após aplicar filtros`);
         
         // Limpar tabela
         elementos.tbody.innerHTML = '';
@@ -215,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.btn-editar').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = parseInt(this.getAttribute('data-id'));
+                    console.log(`Botão editar clicado para escola ID: ${id}`);
                     editarEscola(id);
                 });
             });
@@ -222,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.btn-excluir').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = parseInt(this.getAttribute('data-id'));
+                    console.log(`Botão excluir clicado para escola ID: ${id}`);
                     excluirEscola(id);
                 });
             });
@@ -232,39 +310,77 @@ document.addEventListener('DOMContentLoaded', function() {
             elementos.totalResultados.innerHTML = `
                 Mostrando <span class="font-medium">${escolasFiltradas.length}</span> resultados
             `;
+        } else {
+            console.warn('Elemento totalResultados não encontrado!');
         }
+        
+        console.log('Tabela atualizada com sucesso!');
     }
     
     // Funções de modal e formulário
-    function abrirModalNovaEscola() {
+    function abrirModal() {
+        console.log('Abrindo modal...');
+        
         // Resetar o estado de edição
         estado.escolaEmEdicao = null;
         
         // Limpar formulário
-        if (elementos.formEscola) elementos.formEscola.reset();
+        if (elementos.formEscola) {
+            elementos.formEscola.reset();
+        } else {
+            console.error('Formulário não encontrado!');
+        }
         
         // Restaurar o botão de salvar
-        const btnSubmit = elementos.formEscola.querySelector('button[type="submit"]');
-        if (btnSubmit) btnSubmit.textContent = 'Salvar';
+        const btnSubmit = elementos.formEscola?.querySelector('button[type="submit"]');
+        if (btnSubmit) {
+            btnSubmit.textContent = 'Salvar';
+        } else {
+            console.warn('Botão de submit não encontrado!');
+        }
         
         // Mostrar modal
-        if (elementos.modalEscola) elementos.modalEscola.classList.remove('hidden');
+        if (elementos.modalEscola) {
+            elementos.modalEscola.classList.remove('hidden');
+            console.log('Modal exibido');
+        } else {
+            console.error('Modal não encontrado!');
+        }
         
         // Focar no primeiro campo
-        if (elementos.nomeEscola) elementos.nomeEscola.focus();
+        if (elementos.nomeEscola) {
+            elementos.nomeEscola.focus();
+        } else {
+            console.warn('Campo nome não encontrado!');
+        }
     }
     
     function fecharModal() {
-        if (elementos.modalEscola) elementos.modalEscola.classList.add('hidden');
+        console.log('Fechando modal...');
+        
+        if (elementos.modalEscola) {
+            elementos.modalEscola.classList.add('hidden');
+            console.log('Modal ocultado');
+        } else {
+            console.error('Modal não encontrado!');
+        }
+        
+        // Resetar formulário
+        if (elementos.formEscola) {
+            elementos.formEscola.reset();
+        }
     }
     
     function salvarEscola(e) {
+        console.log('Salvando escola...');
         e.preventDefault();
         
         // Validar formulário
-        const nome = elementos.nomeEscola.value.trim();
-        const regiaoId = parseInt(elementos.regiaoEscola.value);
-        const grupoId = elementos.grupoEscola.value ? parseInt(elementos.grupoEscola.value) : null;
+        const nome = elementos.nomeEscola ? elementos.nomeEscola.value.trim() : '';
+        const regiaoId = elementos.regiaoEscola ? parseInt(elementos.regiaoEscola.value) : 0;
+        const grupoId = elementos.grupoEscola && elementos.grupoEscola.value ? parseInt(elementos.grupoEscola.value) : null;
+        
+        console.log('Dados do formulário:', { nome, regiaoId, grupoId });
         
         if (!nome) {
             alert('Por favor, informe o nome da escola.');
@@ -280,11 +396,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const regiao = DADOS_SIMULADOS.regioes.find(r => r.id === regiaoId);
         const grupo = grupoId ? DADOS_SIMULADOS.grupos.find(g => g.id === grupoId) : null;
         
+        if (!regiao) {
+            console.error(`Região com ID ${regiaoId} não encontrada!`);
+            alert('Região inválida!');
+            return;
+        }
+        
+        if (grupoId && !grupo) {
+            console.error(`Grupo com ID ${grupoId} não encontrado!`);
+            alert('Grupo inválido!');
+            return;
+        }
+        
         if (estado.escolaEmEdicao) {
             // Modo de edição - atualizar escola existente
             const index = estado.escolas.findIndex(e => e.id === estado.escolaEmEdicao);
             
             if (index !== -1) {
+                console.log(`Atualizando escola ID ${estado.escolaEmEdicao}`);
+                
                 estado.escolas[index] = {
                     ...estado.escolas[index],
                     nome,
@@ -294,14 +424,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     grupo
                 };
                 
+                console.log('Escola atualizada:', estado.escolas[index]);
                 alert('Escola atualizada com sucesso!');
+            } else {
+                console.error(`Escola com ID ${estado.escolaEmEdicao} não encontrada para edição!`);
+                alert('Erro ao atualizar escola!');
             }
         } else {
             // Modo de criação - adicionar nova escola
+            const novoId = estado.escolas.length > 0 
+                ? Math.max(...estado.escolas.map(e => e.id)) + 1 
+                : 1;
+                
+            console.log(`Criando nova escola com ID ${novoId}`);
+            
             const novaEscola = {
-                id: estado.escolas.length > 0 
-                    ? Math.max(...estado.escolas.map(e => e.id)) + 1 
-                    : 1,
+                id: novoId,
                 nome,
                 regiaoId,
                 regiao,
@@ -312,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             estado.escolas.push(novaEscola);
+            console.log('Nova escola criada:', novaEscola);
             alert('Escola cadastrada com sucesso!');
         }
         
@@ -321,32 +460,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function editarEscola(id) {
+        console.log(`Editando escola ID ${id}...`);
+        
         // Encontrar a escola pelo ID
         const escola = estado.escolas.find(e => e.id === id);
         
         if (!escola) {
+            console.error(`Escola com ID ${id} não encontrada!`);
             alert('Escola não encontrada!');
             return;
         }
         
+        console.log('Dados da escola para edição:', escola);
+        
         // Preencher formulário com os dados da escola
-        elementos.nomeEscola.value = escola.nome;
-        elementos.regiaoEscola.value = escola.regiaoId;
-        elementos.grupoEscola.value = escola.grupoId || '';
+        if (elementos.nomeEscola) elementos.nomeEscola.value = escola.nome;
+        if (elementos.regiaoEscola) elementos.regiaoEscola.value = escola.regiaoId;
+        if (elementos.grupoEscola) elementos.grupoEscola.value = escola.grupoId || '';
         
         // Salvar referência à escola em edição
         estado.escolaEmEdicao = id;
         
         // Alterar texto do botão
-        const btnSubmit = elementos.formEscola.querySelector('button[type="submit"]');
-        if (btnSubmit) btnSubmit.textContent = 'Atualizar';
+        const btnSubmit = elementos.formEscola?.querySelector('button[type="submit"]');
+        if (btnSubmit) {
+            btnSubmit.textContent = 'Atualizar';
+        } else {
+            console.warn('Botão de submit não encontrado!');
+        }
         
         // Abrir o modal
-        elementos.modalEscola.classList.remove('hidden');
+        if (elementos.modalEscola) {
+            elementos.modalEscola.classList.remove('hidden');
+            console.log('Modal de edição exibido');
+        } else {
+            console.error('Modal não encontrado!');
+        }
     }
     
     function excluirEscola(id) {
+        console.log(`Excluindo escola ID ${id}...`);
+        
         if (!confirm('Tem certeza que deseja excluir esta escola?')) {
+            console.log('Exclusão cancelada pelo usuário');
             return;
         }
         
@@ -354,15 +510,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const index = estado.escolas.findIndex(e => e.id === id);
         
         if (index === -1) {
+            console.error(`Escola com ID ${id} não encontrada para exclusão!`);
             alert('Escola não encontrada!');
             return;
         }
         
         // Remover escola
+        const escolaExcluida = estado.escolas[index];
         estado.escolas.splice(index, 1);
+        
+        console.log('Escola excluída:', escolaExcluida);
         alert('Escola excluída com sucesso!');
         
         // Atualizar tabela
         atualizarTabelaEscolas();
     }
+    
+    // Criar um alias para compatibilidade
+    const abrirModalNovaEscola = abrirModal;
 }); 
