@@ -87,6 +87,10 @@
                             <i class="fas fa-tasks w-6"></i>
                             <span>Realizar Avaliação</span>
                         </a>
+                        <a href="/pages/avaliacao/anonima.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/anonima.html') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-clipboard-list w-6"></i>
+                            <span>Avaliação Anônima</span>
+                        </a>
                     </nav>
                 </div>
             `;
@@ -175,14 +179,47 @@
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4">
                 <div class="container mx-auto">
                     <!-- Título da página e botão de adicionar -->
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6 flex justify-between items-center">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-800 mb-1">Escolas</h1>
-                            <p class="text-gray-600">Gerencie as escolas do sistema</p>
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-800 mb-1">Gerenciamento de Escolas</h1>
+                                <p class="text-gray-600">Cadastre, edite e gerencie todas as escolas do sistema SALF</p>
+                            </div>
+                            <button id="btn-nova-escola" class="bg-blue-600 text-white rounded-md px-4 py-2 flex items-center hover:bg-blue-700 transition">
+                                <i class="fas fa-plus mr-2"></i> Nova Escola
+                            </button>
                         </div>
-                        <button id="btn-nova-escola" class="bg-blue-600 text-white rounded-md px-4 py-2 flex items-center hover:bg-blue-700 transition">
-                            <i class="fas fa-plus mr-2"></i> Nova Escola
-                        </button>
+                        
+                        <!-- Resumo/estatísticas -->
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-blue-50 rounded-md p-4 border border-blue-100 flex items-center">
+                                <div class="rounded-full bg-blue-100 p-3 mr-4">
+                                    <i class="fas fa-school text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-600 uppercase font-semibold">Total de Escolas</p>
+                                    <p class="text-2xl font-bold text-blue-800" id="total-escolas">-</p>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 rounded-md p-4 border border-green-100 flex items-center">
+                                <div class="rounded-full bg-green-100 p-3 mr-4">
+                                    <i class="fas fa-users text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-green-600 uppercase font-semibold">Total de Turmas</p>
+                                    <p class="text-2xl font-bold text-green-800" id="total-turmas">-</p>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 rounded-md p-4 border border-purple-100 flex items-center">
+                                <div class="rounded-full bg-purple-100 p-3 mr-4">
+                                    <i class="fas fa-user-graduate text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-purple-600 uppercase font-semibold">Total de Alunos</p>
+                                    <p class="text-2xl font-bold text-purple-800" id="total-alunos">-</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Tabela de escolas -->
@@ -251,7 +288,13 @@
                                     <!-- Dados serão carregados via JavaScript -->
                                     <tr>
                                         <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                                            Carregando escolas...
+                                            <div class="flex justify-center items-center space-x-2">
+                                                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span>Carregando escolas...</span>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -286,27 +329,36 @@
                 </div>
             </div>
             <form id="form-escola">
-                <div class="p-6">
-                    <div class="mb-4">
+                <div class="p-6 space-y-4">
+                    <div>
                         <label for="nome-escola" class="block text-sm font-medium text-gray-700 mb-1">Nome da Escola</label>
                         <input type="text" id="nome-escola" name="nome-escola" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Digite o nome completo da escola">
+                        <p class="mt-1 text-xs text-gray-500">Ex: Escola Municipal João da Silva</p>
                     </div>
-                    <div class="mb-4">
+                    
+                    <div>
                         <label for="regiao-escola" class="block text-sm font-medium text-gray-700 mb-1">Região</label>
                         <select id="regiao-escola" name="regiao-escola" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Selecione uma região</option>
                         </select>
                     </div>
-                    <div class="mb-4">
+                    
+                    <div>
                         <label for="grupo-escola" class="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
-                        <select id="grupo-escola" name="grupo-escola" required
+                        <select id="grupo-escola" name="grupo-escola"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Selecione um grupo</option>
+                            <option value="">Selecione um grupo (opcional)</option>
                         </select>
                     </div>
+                    
+                    <div class="bg-blue-50 p-3 rounded-md border border-blue-100 text-sm text-blue-700">
+                        <i class="fas fa-info-circle mr-1"></i> Os dados serão salvos localmente no seu navegador, permitindo o uso mesmo offline.
+                    </div>
                 </div>
+                
                 <div class="px-6 py-4 bg-gray-50 border-t flex justify-end">
                     <button type="button" id="cancelar-escola" class="bg-white border border-gray-300 text-gray-700 rounded-md px-4 py-2 mr-2 hover:bg-gray-50 transition">
                         Cancelar
@@ -319,7 +371,61 @@
         </div>
     </div>
     
+    <!-- Toast de notificação -->
+    <div id="toast-notification" class="hidden fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-md shadow-lg z-50 transition-opacity">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toast-message">Operação realizada com sucesso!</span>
+        </div>
+    </div>
+    
     <!-- Script da página de escolas -->
     <script src="/js/escolas-app.js"></script>
+    
+    <!-- Script para animação de toast -->
+    <script>
+        function mostrarToast(mensagem, tipo = 'sucesso') {
+            const toast = document.getElementById('toast-notification');
+            const mensagemToast = document.getElementById('toast-message');
+            
+            // Definir a mensagem
+            mensagemToast.textContent = mensagem;
+            
+            // Definir a cor de acordo com o tipo
+            if (tipo === 'sucesso') {
+                toast.classList.remove('bg-red-500', 'bg-yellow-500');
+                toast.classList.add('bg-green-500');
+            } else if (tipo === 'erro') {
+                toast.classList.remove('bg-green-500', 'bg-yellow-500');
+                toast.classList.add('bg-red-500');
+            } else if (tipo === 'alerta') {
+                toast.classList.remove('bg-green-500', 'bg-red-500');
+                toast.classList.add('bg-yellow-500');
+            }
+            
+            // Mostrar o toast
+            toast.classList.remove('hidden');
+            
+            // Esconder após 3 segundos
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // Atualizar estatísticas ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Estas informações serão atualizadas pelo escolas-app.js
+            // É só um exemplo de como seria a implementação
+            setTimeout(() => {
+                const totalEscolas = document.getElementById('total-escolas');
+                const totalTurmas = document.getElementById('total-turmas');
+                const totalAlunos = document.getElementById('total-alunos');
+                
+                if (totalEscolas) totalEscolas.textContent = '2';
+                if (totalTurmas) totalTurmas.textContent = '20';
+                if (totalAlunos) totalAlunos.textContent = '600';
+            }, 1000);
+        });
+    </script>
 </body>
 </html> 

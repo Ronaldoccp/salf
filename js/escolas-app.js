@@ -61,7 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Elementos do formulário
         nomeEscola: document.getElementById('nome-escola'),
         regiaoEscola: document.getElementById('regiao-escola'),
-        grupoEscola: document.getElementById('grupo-escola')
+        grupoEscola: document.getElementById('grupo-escola'),
+        
+        // Elementos de estatísticas
+        totalEscolas: document.getElementById('total-escolas'),
+        totalTurmas: document.getElementById('total-turmas'),
+        totalAlunos: document.getElementById('total-alunos')
     };
     
     // Verificar elementos críticos
@@ -148,6 +153,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurar eventos
     configurarEventos();
     
+    // Atualizar estatísticas
+    atualizarEstatisticas();
+    
     // Funções de inicialização
     function inicializarDados() {
         console.log('Inicializando dados...');
@@ -158,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
             preencherSelect(elementos.filtroRegiao, DADOS_SIMULADOS.regioes, 'Todas as regiões');
             
             // Preencher selects de grupos
-            preencherSelect(elementos.grupoEscola, DADOS_SIMULADOS.grupos, 'Selecione um grupo');
+            preencherSelect(elementos.grupoEscola, DADOS_SIMULADOS.grupos, 'Selecione um grupo (opcional)');
             preencherSelect(elementos.filtroGrupo, DADOS_SIMULADOS.grupos, 'Todos os grupos');
             
             // Carregar escolas iniciais
@@ -191,7 +199,22 @@ document.addEventListener('DOMContentLoaded', function() {
             elementos.tbody.appendChild(tr);
         } else {
             console.error('Não foi possível exibir mensagem de erro:', mensagem);
-            alert(mensagem);
+            mostrarToast(mensagem, 'erro');
+        }
+    }
+    
+    // Função para mostrar mensagens toast
+    function mostrarToast(mensagem, tipo = 'sucesso') {
+        // Verificar se a função está disponível globalmente
+        if (typeof window.mostrarToast === 'function') {
+            window.mostrarToast(mensagem, tipo);
+        } else {
+            // Fallback: usar alert se a função toast não estiver disponível
+            if (tipo === 'erro') {
+                alert('Erro: ' + mensagem);
+            } else {
+                alert(mensagem);
+            }
         }
     }
     
@@ -303,6 +326,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Função para atualizar estatísticas nos cards
+    function atualizarEstatisticas() {
+        try {
+            console.log('Atualizando estatísticas...');
+            
+            // Calcular totais
+            const totalEscolas = estado.escolas.length;
+            
+            let totalTurmas = 0;
+            let totalAlunos = 0;
+            
+            estado.escolas.forEach(escola => {
+                totalTurmas += escola.turmas || 0;
+                totalAlunos += escola.alunos || 0;
+            });
+            
+            // Atualizar elementos na interface
+            if (elementos.totalEscolas) {
+                elementos.totalEscolas.textContent = totalEscolas.toString();
+            }
+            
+            if (elementos.totalTurmas) {
+                elementos.totalTurmas.textContent = totalTurmas.toString();
+            }
+            
+            if (elementos.totalAlunos) {
+                elementos.totalAlunos.textContent = totalAlunos.toString();
+            }
+            
+            console.log('Estatísticas atualizadas:', { totalEscolas, totalTurmas, totalAlunos });
+        } catch (error) {
+            console.error('Erro ao atualizar estatísticas:', error);
+        }
+    }
+    
     function atualizarTabelaEscolas() {
         console.log('Atualizando tabela de escolas...');
         
@@ -349,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                        Nenhuma escola encontrada
+                        Nenhuma escola encontrada com os filtros selecionados
                     </td>
                 `;
                 elementos.tbody.appendChild(tr);
@@ -358,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 escolasFiltradas.forEach(escola => {
                     const tr = document.createElement('tr');
                     try {
+                        tr.classList.add('hover:bg-gray-50', 'transition-colors');
                         tr.innerHTML = `
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 ${escola.id || '?'}
@@ -472,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Erro ao abrir modal:', error);
-            alert('Erro ao abrir formulário de escola');
+            mostrarToast('Erro ao abrir formulário de escola', 'erro');
         }
     }
     
@@ -509,12 +568,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Dados do formulário:', { nome, regiaoId, grupoId });
             
             if (!nome) {
-                alert('Por favor, informe o nome da escola.');
+                mostrarToast('Por favor, informe o nome da escola.', 'erro');
                 return;
             }
             
             if (!regiaoId) {
-                alert('Por favor, selecione a região da escola.');
+                mostrarToast('Por favor, selecione a região da escola.', 'erro');
                 return;
             }
             
@@ -524,13 +583,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!regiao) {
                 console.error(`Região com ID ${regiaoId} não encontrada!`);
-                alert('Região inválida!');
+                mostrarToast('Região inválida!', 'erro');
                 return;
             }
             
             if (grupoId && !grupo) {
                 console.error(`Grupo com ID ${grupoId} não encontrado!`);
-                alert('Grupo inválido!');
+                mostrarToast('Grupo inválido!', 'erro');
                 return;
             }
             
@@ -551,10 +610,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     
                     console.log('Escola atualizada:', estado.escolas[index]);
-                    alert('Escola atualizada com sucesso!');
+                    mostrarToast('Escola atualizada com sucesso!', 'sucesso');
                 } else {
                     console.error(`Escola com ID ${estado.escolaEmEdicao} não encontrada para edição!`);
-                    alert('Erro ao atualizar escola!');
+                    mostrarToast('Erro ao atualizar escola!', 'erro');
                 }
             } else {
                 // Modo de criação - adicionar nova escola
@@ -577,18 +636,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 estado.escolas.push(novaEscola);
                 console.log('Nova escola criada:', novaEscola);
-                alert('Escola cadastrada com sucesso!');
+                mostrarToast('Escola cadastrada com sucesso!', 'sucesso');
             }
             
             // Salvar escolas no localStorage
             salvarEscolasLocalStorage();
             
-            // Atualizar tabela e fechar modal
+            // Atualizar tabela e estatísticas
             atualizarTabelaEscolas();
+            atualizarEstatisticas();
+            
+            // Fechar modal
             fecharModal();
         } catch (error) {
             console.error('Erro ao salvar escola:', error);
-            alert('Ocorreu um erro ao salvar a escola. Por favor, tente novamente.');
+            mostrarToast('Ocorreu um erro ao salvar a escola. Por favor, tente novamente.', 'erro');
         }
     }
     
@@ -601,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!escola) {
                 console.error(`Escola com ID ${id} não encontrada!`);
-                alert('Escola não encontrada!');
+                mostrarToast('Escola não encontrada!', 'erro');
                 return;
             }
             
@@ -623,6 +685,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('Botão de submit não encontrado!');
             }
             
+            // Alterar título do modal
+            const tituloModal = elementos.modalEscola?.querySelector('h3');
+            if (tituloModal) {
+                tituloModal.textContent = 'Editar Escola';
+            }
+            
             // Abrir o modal
             if (elementos.modalEscola) {
                 elementos.modalEscola.classList.remove('hidden');
@@ -632,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Erro ao editar escola:', error);
-            alert('Erro ao carregar dados da escola para edição');
+            mostrarToast('Erro ao carregar dados da escola para edição', 'erro');
         }
     }
     
@@ -650,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (index === -1) {
                 console.error(`Escola com ID ${id} não encontrada para exclusão!`);
-                alert('Escola não encontrada!');
+                mostrarToast('Escola não encontrada!', 'erro');
                 return;
             }
             
@@ -662,13 +730,14 @@ document.addEventListener('DOMContentLoaded', function() {
             salvarEscolasLocalStorage();
             
             console.log('Escola excluída:', escolaExcluida);
-            alert('Escola excluída com sucesso!');
+            mostrarToast('Escola excluída com sucesso!', 'sucesso');
             
-            // Atualizar tabela
+            // Atualizar tabela e estatísticas
             atualizarTabelaEscolas();
+            atualizarEstatisticas();
         } catch (error) {
             console.error('Erro ao excluir escola:', error);
-            alert('Ocorreu um erro ao excluir a escola');
+            mostrarToast('Ocorreu um erro ao excluir a escola', 'erro');
         }
     }
     
