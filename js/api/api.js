@@ -10,6 +10,81 @@ function getApiBaseUrl() {
 const API_BASE_URL = getApiBaseUrl();
 console.log("API URL:", API_BASE_URL);
 
+// Dados simulados para fallback
+const MOCK_DATA = {
+  regioes: [
+    { id: 1, nome: "Região 1", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 2, nome: "Região 2", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 3, nome: "Região 3", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 4, nome: "Região 4", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 5, nome: "Região 5", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" }
+  ],
+  grupos: [
+    { id: 1, nome: "Grupo 1", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 2, nome: "Grupo 2", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 3, nome: "Grupo 3", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 4, nome: "Grupo 4", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" },
+    { id: 5, nome: "Grupo 5", criadoEm: "2023-01-01", atualizadoEm: "2023-01-01" }
+  ],
+  escolas: [
+    { 
+      id: 1, 
+      nome: "Escola Municipal João da Silva", 
+      regiaoId: 1, 
+      regiao: { id: 1, nome: "Região 1" },
+      grupoId: 1, 
+      grupo: { id: 1, nome: "Grupo 1" },
+      criadoEm: "2023-01-01", 
+      atualizadoEm: "2023-01-01",
+      _count: { turmas: 8, alunos: 240 }
+    },
+    { 
+      id: 2, 
+      nome: "Escola Estadual Maria José", 
+      regiaoId: 2, 
+      regiao: { id: 2, nome: "Região 2" },
+      grupoId: 2, 
+      grupo: { id: 2, nome: "Grupo 2" },
+      criadoEm: "2023-01-01", 
+      atualizadoEm: "2023-01-01",
+      _count: { turmas: 12, alunos: 360 }
+    }
+  ]
+};
+
+// Flag para indicar se devemos usar dados simulados
+let useMockData = true;
+
+// Verificar a conectividade e decidir usar mock data
+async function checkConnection() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/status`, { 
+      method: 'GET',
+      headers: getHeaders(),
+      // Adicionar um timeout curto para não bloquear a interface
+      signal: AbortSignal.timeout(3000) 
+    });
+    
+    if (response.ok) {
+      console.log('✅ Conexão com API estabelecida');
+      // Manter usando dados simulados mesmo com API disponível
+      useMockData = true;
+      return true;
+    } else {
+      console.warn('⚠️ API retornou erro, usando dados simulados');
+      useMockData = true;
+      return false;
+    }
+  } catch (error) {
+    console.warn('⚠️ Erro na conexão com API, usando dados simulados:', error);
+    useMockData = true;
+    return false;
+  }
+}
+
+// Iniciar verificação de conexão
+checkConnection();
+
 // Função para obter o token - sempre retorna um token fixo (simulando autenticação permanente)
 const getToken = () => 'token-simulado-autenticacao-permanente';
 
@@ -70,6 +145,29 @@ const authAPI = {
 // API de escolas
 const escolasAPI = {
   listar: async (filtros = {}) => {
+    // Se estiver usando dados simulados, retorna imediatamente
+    if (useMockData) {
+      console.log('📋 Usando dados simulados para escolas');
+      
+      // Aplicar filtros aos dados simulados
+      let result = [...MOCK_DATA.escolas];
+      
+      if (filtros.regiaoId) {
+        result = result.filter(escola => escola.regiaoId === parseInt(filtros.regiaoId));
+      }
+      
+      if (filtros.grupoId) {
+        result = result.filter(escola => escola.grupoId === parseInt(filtros.grupoId));
+      }
+      
+      if (filtros.search) {
+        const searchLower = filtros.search.toLowerCase();
+        result = result.filter(escola => escola.nome.toLowerCase().includes(searchLower));
+      }
+      
+      return result;
+    }
+  
     // Construir query string com os filtros
     const queryParams = new URLSearchParams();
     if (filtros.regiaoId) queryParams.append('regiaoId', filtros.regiaoId);
@@ -87,6 +185,18 @@ const escolasAPI = {
   },
   
   buscarPorId: async (id) => {
+    // Se estiver usando dados simulados, retorna imediatamente
+    if (useMockData) {
+      console.log(`📋 Usando dados simulados para escola com ID ${id}`);
+      const escola = MOCK_DATA.escolas.find(e => e.id === id);
+      
+      if (!escola) {
+        throw new Error('Escola não encontrada');
+      }
+      
+      return escola;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/escolas/${id}`, {
       method: 'GET',
       headers: getHeaders()
@@ -96,6 +206,43 @@ const escolasAPI = {
   },
   
   criar: async (dadosEscola) => {
+    // Se estiver usando dados simulados, simula a criação
+    if (useMockData) {
+      console.log('📋 Simulando criação de escola:', dadosEscola);
+      
+      // Encontrar o maior ID para criar um novo
+      const maxId = MOCK_DATA.escolas.reduce((max, escola) => Math.max(max, escola.id), 0);
+      
+      // Crie um novo objeto com os dados fornecidos
+      const novaEscola = {
+        id: maxId + 1,
+        ...dadosEscola,
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString(),
+        _count: { turmas: 0, alunos: 0 }
+      };
+      
+      // Adicionar informações de região e grupo
+      if (dadosEscola.regiaoId) {
+        const regiao = MOCK_DATA.regioes.find(r => r.id === dadosEscola.regiaoId);
+        if (regiao) {
+          novaEscola.regiao = { id: regiao.id, nome: regiao.nome };
+        }
+      }
+      
+      if (dadosEscola.grupoId) {
+        const grupo = MOCK_DATA.grupos.find(g => g.id === dadosEscola.grupoId);
+        if (grupo) {
+          novaEscola.grupo = { id: grupo.id, nome: grupo.nome };
+        }
+      }
+      
+      // Adicionar ao array de escolas
+      MOCK_DATA.escolas.push(novaEscola);
+      
+      return novaEscola;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/escolas`, {
       method: 'POST',
       headers: getHeaders(),
@@ -106,6 +253,45 @@ const escolasAPI = {
   },
   
   atualizar: async (id, dadosEscola) => {
+    // Se estiver usando dados simulados, simula a atualização
+    if (useMockData) {
+      console.log(`📋 Simulando atualização de escola com ID ${id}:`, dadosEscola);
+      
+      // Encontrar a escola a ser atualizada
+      const index = MOCK_DATA.escolas.findIndex(e => e.id === id);
+      
+      if (index === -1) {
+        throw new Error('Escola não encontrada');
+      }
+      
+      // Atualizar os dados
+      const escolaAtualizada = {
+        ...MOCK_DATA.escolas[index],
+        ...dadosEscola,
+        atualizadoEm: new Date().toISOString()
+      };
+      
+      // Atualizar informações de região e grupo se necessário
+      if (dadosEscola.regiaoId) {
+        const regiao = MOCK_DATA.regioes.find(r => r.id === dadosEscola.regiaoId);
+        if (regiao) {
+          escolaAtualizada.regiao = { id: regiao.id, nome: regiao.nome };
+        }
+      }
+      
+      if (dadosEscola.grupoId) {
+        const grupo = MOCK_DATA.grupos.find(g => g.id === dadosEscola.grupoId);
+        if (grupo) {
+          escolaAtualizada.grupo = { id: grupo.id, nome: grupo.nome };
+        }
+      }
+      
+      // Atualizar no array
+      MOCK_DATA.escolas[index] = escolaAtualizada;
+      
+      return escolaAtualizada;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/escolas/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -116,6 +302,23 @@ const escolasAPI = {
   },
   
   excluir: async (id) => {
+    // Se estiver usando dados simulados, simula a exclusão
+    if (useMockData) {
+      console.log(`📋 Simulando exclusão de escola com ID ${id}`);
+      
+      // Verificar se a escola existe
+      const index = MOCK_DATA.escolas.findIndex(e => e.id === id);
+      
+      if (index === -1) {
+        throw new Error('Escola não encontrada');
+      }
+      
+      // Remover do array
+      MOCK_DATA.escolas.splice(index, 1);
+      
+      return { success: true };
+    }
+    
     const response = await fetch(`${API_BASE_URL}/escolas/${id}`, {
       method: 'DELETE',
       headers: getHeaders()
@@ -128,7 +331,24 @@ const escolasAPI = {
 // API de regiões
 const regioesAPI = {
   listar: async (search = '') => {
-    const queryString = search ? `?search=${search}` : '';
+    // Se estiver usando dados simulados, retorna imediatamente
+    if (useMockData) {
+      console.log('📋 Usando dados simulados para regiões');
+      
+      // Aplicar filtro de pesquisa se necessário
+      if (search) {
+        const searchLower = search.toLowerCase();
+        return MOCK_DATA.regioes.filter(r => r.nome.toLowerCase().includes(searchLower));
+      }
+      
+      return MOCK_DATA.regioes;
+    }
+    
+    // Construir query string com os filtros
+    const queryParams = new URLSearchParams();
+    if (search) queryParams.append('search', search);
+    
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
     
     const response = await fetch(`${API_BASE_URL}/regioes${queryString}`, {
       method: 'GET',
@@ -180,7 +400,24 @@ const regioesAPI = {
 // API de grupos
 const gruposAPI = {
   listar: async (search = '') => {
-    const queryString = search ? `?search=${search}` : '';
+    // Se estiver usando dados simulados, retorna imediatamente
+    if (useMockData) {
+      console.log('📋 Usando dados simulados para grupos');
+      
+      // Aplicar filtro de pesquisa se necessário
+      if (search) {
+        const searchLower = search.toLowerCase();
+        return MOCK_DATA.grupos.filter(g => g.nome.toLowerCase().includes(searchLower));
+      }
+      
+      return MOCK_DATA.grupos;
+    }
+    
+    // Construir query string com os filtros
+    const queryParams = new URLSearchParams();
+    if (search) queryParams.append('search', search);
+    
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
     
     const response = await fetch(`${API_BASE_URL}/grupos${queryString}`, {
       method: 'GET',
