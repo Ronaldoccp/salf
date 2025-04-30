@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Anônima - SALF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Template inline para garantir o menu -->
+    <script>
+        // Template inline para o SALF - versão simplificada
+        console.log('📋 Carregando template inline...');
+
+        // Definições básicas
+        const userRole = 'admin';
+        const userEmail = 'usuario@exemplo.com';
+
+        // Carregar o template de forma síncrona
+        function loadInlineTemplate() {
+            // Defina valores padrão para usuário
+            localStorage.setItem('userRole', userRole);
+            localStorage.setItem('userEmail', userEmail);
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            // Estrutura do cabeçalho
+            const header = `
+                <div class="bg-white border-b px-4 py-3 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <button id="sidebar-toggle" class="text-gray-600 focus:outline-none lg:hidden mr-2">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="text-xl font-bold text-blue-800">SALF</h1>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="mr-4 text-sm text-gray-600">
+                            <span class="font-semibold">${userEmail}</span>
+                            <span class="ml-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${userRole}</span>
+                        </div>
+                        <button id="logout-btn" class="text-red-600 hover:text-red-800 focus:outline-none">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Detectar a página atual para destacar o item de menu correspondente
+            const currentPage = window.location.href;
+            
+            // Estrutura do sidebar
+            const sidebar = `
+                <div id="sidebar" class="bg-blue-800 text-white w-64 space-y-1 py-4 fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 -translate-x-full transition duration-200 ease-in-out z-10">
+                    <div class="flex items-center justify-between px-4 mb-4">
+                        <div class="flex items-center">
+                            <h2 class="text-xl font-bold">SALF</h2>
+                        </div>
+                        <button id="sidebar-close" class="text-white focus:outline-none lg:hidden">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <nav>
+                        <a href="/index.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('index.html') || currentPage.endsWith('/') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-chart-bar w-6"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/pages/escola/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/escola/listar.html') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-school w-6"></i>
+                            <span>Escolas</span>
+                        </a>
+                        <a href="/pages/turma/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/turma/') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-users w-6"></i>
+                            <span>Turmas</span>
+                        </a>
+                        <a href="/pages/aluno/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/aluno/') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-user-graduate w-6"></i>
+                            <span>Alunos</span>
+                        </a>
+                        <a href="/pages/avaliacao/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/listar.html') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-clipboard-check w-6"></i>
+                            <span>Avaliações</span>
+                        </a>
+                        <a href="/pages/usuario/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/usuario/') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-user-cog w-6"></i>
+                            <span>Usuários</span>
+                        </a>
+                        <a href="/pages/avaliacao/realizar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/realizar.html') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-tasks w-6"></i>
+                            <span>Realizar Avaliação</span>
+                        </a>
+                        <a href="/pages/avaliacao/anonima.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/anonima.html') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-clipboard-list w-6"></i>
+                            <span>Avaliação Anônima</span>
+                        </a>
+                        <a href="/pages/escola/gerenciar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/escola/gerenciar.html') ? 'bg-blue-700' : ''}">
+                            <i class="fas fa-cogs w-6"></i>
+                            <span>Gerenciar Escolas</span>
+                        </a>
+                    </nav>
+                </div>
+            `;
+            
+            // Adicionar o template ao DOM
+            let headerContainer = document.getElementById('header-container');
+            if (!headerContainer) {
+                console.log('⚠️ Elemento header-container não encontrado, criando fallback');
+                headerContainer = document.createElement('div');
+                headerContainer.id = 'header-container';
+                document.body.prepend(headerContainer);
+            }
+            
+            if (headerContainer) {
+                console.log('✅ Adicionando header ao DOM');
+                headerContainer.innerHTML = header;
+            }
+            
+            let sidebarContainer = document.getElementById('sidebar-container');
+            if (!sidebarContainer) {
+                console.log('⚠️ Elemento sidebar-container não encontrado, criando fallback');
+                sidebarContainer = document.createElement('div');
+                sidebarContainer.id = 'sidebar-container';
+                
+                // Tentar encontrar o elemento main para inserir antes dele
+                const mainContent = document.querySelector('main') || document.body.firstChild;
+                document.body.insertBefore(sidebarContainer, mainContent);
+            }
+            
+            if (sidebarContainer) {
+                console.log('✅ Adicionando sidebar ao DOM');
+                sidebarContainer.innerHTML = sidebar;
+            }
+            
+            // Configurar toggle do sidebar para dispositivos móveis
+            setupToggle();
+        }
+
+        // Configurar toggle do sidebar para dispositivos móveis
+        function setupToggle() {
+            console.log('🔄 Configurando toggle do sidebar...');
+            
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebarClose = document.getElementById('sidebar-close');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+            
+            if (sidebarClose && sidebar) {
+                sidebarClose.addEventListener('click', function() {
+                    sidebar.classList.add('-translate-x-full');
+                });
+            }
+            
+            // Configurar logout
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    window.location.href = '/index.html';
+                });
+            }
+        }
+
+        // Carregar quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOMContentLoaded - Iniciando template inline');
+            loadInlineTemplate();
+        });
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Conteúdo principal -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div id="header-container"></div>
+            
+            <!-- Conteúdo da página -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4">
+                <div class="container mx-auto">
+                    <!-- Título da página -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-2">Avaliação Anônima</h1>
+                        <p class="text-gray-600">Realize uma avaliação de leitura sem necessidade de cadastro prévio de aluno</p>
+                    </div>
+                    
+                    <!-- Formulário de avaliação -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                        <div class="p-4 border-b">
+                            <h2 class="text-lg font-semibold text-gray-800">Selecione os parâmetros da avaliação</h2>
+                        </div>
+                        <div class="p-6">
+                            <form id="form-avaliacao">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <label for="evento-avaliacao" class="block text-sm font-medium text-gray-700 mb-1">Evento de Avaliação</label>
+                                        <select id="evento-avaliacao" name="evento-avaliacao" required 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="">Selecione um evento</option>
+                                            <option value="1">Avaliação 1º Semestre 2023</option>
+                                            <option value="2">Avaliação 2º Semestre 2023</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="nivel-serie" class="block text-sm font-medium text-gray-700 mb-1">Nível de Ensino</label>
+                                        <select id="nivel-serie" name="nivel-serie" required
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="">Selecione um nível</option>
+                                            <option value="1">1º Ano - Ensino Fundamental</option>
+                                            <option value="2">2º Ano - Ensino Fundamental</option>
+                                            <option value="3">3º Ano - Ensino Fundamental</option>
+                                            <option value="4">4º Ano - Ensino Fundamental</option>
+                                            <option value="5">5º Ano - Ensino Fundamental</option>
+                                            <option value="6">6º Ano - Ensino Fundamental</option>
+                                            <option value="7">7º Ano - Ensino Fundamental</option>
+                                            <option value="8">8º Ano - Ensino Fundamental</option>
+                                            <option value="9">9º Ano - Ensino Fundamental</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-blue-50 p-4 rounded-md mb-6 border border-blue-100">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-blue-800">Informações</h3>
+                                            <div class="mt-2 text-sm text-blue-700">
+                                                <p>A avaliação anônima permite realizar o teste de leitura sem a necessidade de cadastrar o aluno previamente.</p>
+                                                <p class="mt-1">Os resultados não serão vinculados a nenhuma escola ou aluno específico e serão salvos localmente.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <button type="submit" id="iniciar-avaliacao" class="bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition">
+                                        Iniciar Avaliação
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Etapas da avaliação (escondidas inicialmente) -->
+                    <div id="etapas-avaliacao" class="space-y-6 hidden">
+                        <!-- Etapas serão carregadas dinamicamente -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="/js/avaliacao-anonima.js"></script>
+</body>
+</html> 
