@@ -7,6 +7,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Script para verificar o carregamento correto -->
+    <script>
+        window.addEventListener('load', function() {
+            console.log('🎬 Página carregada completamente');
+            
+            // Verificar se os contêineres existem
+            const sidebar = document.getElementById('sidebar-container');
+            const header = document.getElementById('header-container');
+            
+            console.log('Sidebar encontrado:', !!sidebar);
+            console.log('Header encontrado:', !!header);
+            
+            // Verificar se o template.js foi carregado
+            if (typeof loadTemplate === 'undefined') {
+                console.error('❌ Função loadTemplate não encontrada! O arquivo template.js pode não ter sido carregado corretamente.');
+                
+                // Tentar carregar o script manualmente
+                const script = document.createElement('script');
+                script.src = '/js/template.js';
+                script.onload = function() {
+                    console.log('✅ template.js carregado manualmente com sucesso');
+                    if (typeof loadTemplate === 'function') {
+                        loadTemplate();
+                    }
+                };
+                script.onerror = function() {
+                    console.error('❌ Falha ao carregar template.js manualmente');
+                };
+                document.head.appendChild(script);
+            }
+        });
+    </script>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="flex h-screen bg-gray-100">
@@ -184,7 +216,7 @@
         </div>
     </div>
     
-    <script src="js/template.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="/js/template.js"></script>
+    <script src="/js/dashboard.js"></script>
 </body>
 </html> 

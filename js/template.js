@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOMContentLoaded - Iniciando carregamento do template');
+    
     // Verificação de login removida, pois não temos mais página de login
     
     // Carregar o sidebar e header
@@ -32,6 +34,8 @@ function getBasePath() {
 }
 
 function loadTemplate() {
+    console.log('📋 Carregando template...');
+    
     // Defina valores padrão para usuário, já que não há mais login
     const userRole = 'admin'; // Definindo como admin por padrão para ter acesso a todas as funcionalidades
     const userEmail = 'usuario@exemplo.com';
@@ -40,6 +44,7 @@ function loadTemplate() {
     localStorage.setItem('isLoggedIn', 'true');
     
     const basePath = getBasePath();
+    console.log('🔍 Base path:', basePath);
     
     // Estrutura do cabeçalho
     const header = `
@@ -133,17 +138,37 @@ function loadTemplate() {
     `;
     
     // Adicionar o template ao DOM
-    const headerContainer = document.getElementById('header-container');
+    let headerContainer = document.getElementById('header-container');
+    if (!headerContainer) {
+        console.log('⚠️ Elemento header-container não encontrado, criando fallback');
+        headerContainer = document.createElement('div');
+        headerContainer.id = 'header-container';
+        document.body.prepend(headerContainer);
+    }
+    
     if (headerContainer) {
+        console.log('✅ Adicionando header ao DOM');
         headerContainer.innerHTML = header;
     }
     
-    const sidebarContainer = document.getElementById('sidebar-container');
+    let sidebarContainer = document.getElementById('sidebar-container');
+    if (!sidebarContainer) {
+        console.log('⚠️ Elemento sidebar-container não encontrado, criando fallback');
+        sidebarContainer = document.createElement('div');
+        sidebarContainer.id = 'sidebar-container';
+        
+        // Tentar encontrar o elemento main para inserir antes dele
+        const mainContent = document.querySelector('main') || document.body.firstChild;
+        document.body.insertBefore(sidebarContainer, mainContent);
+    }
+    
     if (sidebarContainer) {
+        console.log('✅ Adicionando sidebar ao DOM');
         sidebarContainer.innerHTML = sidebar;
     }
     
     // Configurar toggle do sidebar para dispositivos móveis
+    console.log('🔄 Configurando toggle do sidebar');
     setupSidebarToggle();
 }
 
