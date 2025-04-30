@@ -12,8 +12,8 @@
     "db:studio": "prisma studio",
     "process-html": "node api/menu-pages.js",
     "prebuild": "npm run process-html",
-    "build": "prisma generate",
-    "vercel-build": "prisma generate"
+    "build": "prisma generate && node api/setup-vercel.js",
+    "vercel-build": "prisma generate && node api/setup-vercel.js"
   },
   "keywords": ["educação", "leitura", "avaliação", "fluência"],
   "author": "Equipe SALF",
