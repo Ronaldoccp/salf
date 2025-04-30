@@ -10,6 +10,8 @@
     "db:migrate": "npx prisma migrate dev",
     "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio",
+    "process-html": "node api/menu-pages.js",
+    "prebuild": "npm run process-html",
     "build": "prisma generate",
     "vercel-build": "prisma generate"
   },

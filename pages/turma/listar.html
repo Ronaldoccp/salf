@@ -6,6 +6,161 @@
     <title>Turmas - SALF</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Template inline para garantir o menu -->
+<script>
+    // Template inline para o SALF - versão simplificada
+    console.log('📋 Carregando template inline...');
+
+    // Definições básicas
+    const userRole = 'admin';
+    const userEmail = 'usuario@exemplo.com';
+
+    // Carregar o template de forma síncrona
+    function loadInlineTemplate() {
+        // Defina valores padrão para usuário
+        localStorage.setItem('userRole', userRole);
+        localStorage.setItem('userEmail', userEmail);
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        // Estrutura do cabeçalho
+        const header = `
+            <div class="bg-white border-b px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center">
+                    <button id="sidebar-toggle" class="text-gray-600 focus:outline-none lg:hidden mr-2">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="text-xl font-bold text-blue-800">SALF</h1>
+                </div>
+                <div class="flex items-center">
+                    <div class="mr-4 text-sm text-gray-600">
+                        <span class="font-semibold">${userEmail}</span>
+                        <span class="ml-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${userRole}</span>
+                    </div>
+                    <button id="logout-btn" class="text-red-600 hover:text-red-800 focus:outline-none">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Detectar a página atual para destacar o item de menu correspondente
+        const currentPage = window.location.href;
+        
+        // Estrutura do sidebar
+        const sidebar = `
+            <div id="sidebar" class="bg-blue-800 text-white w-64 space-y-1 py-4 fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 -translate-x-full transition duration-200 ease-in-out z-10">
+                <div class="flex items-center justify-between px-4 mb-4">
+                    <div class="flex items-center">
+                        <h2 class="text-xl font-bold">SALF</h2>
+                    </div>
+                    <button id="sidebar-close" class="text-white focus:outline-none lg:hidden">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <nav>
+                    <a href="/index.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('index.html') || currentPage.endsWith('/') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-chart-bar w-6"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/pages/escola/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/escola/') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-school w-6"></i>
+                        <span>Escolas</span>
+                    </a>
+                    <a href="/pages/turma/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/turma/') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-users w-6"></i>
+                        <span>Turmas</span>
+                    </a>
+                    <a href="/pages/aluno/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/aluno/') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-user-graduate w-6"></i>
+                        <span>Alunos</span>
+                    </a>
+                    <a href="/pages/avaliacao/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/listar.html') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-clipboard-check w-6"></i>
+                        <span>Avaliações</span>
+                    </a>
+                    <a href="/pages/usuario/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/usuario/') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-user-cog w-6"></i>
+                        <span>Usuários</span>
+                    </a>
+                    <a href="/pages/avaliacao/realizar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/realizar.html') ? 'bg-blue-700' : ''}">
+                        <i class="fas fa-tasks w-6"></i>
+                        <span>Realizar Avaliação</span>
+                    </a>
+                </nav>
+            </div>
+        `;
+        
+        // Adicionar o template ao DOM
+        let headerContainer = document.getElementById('header-container');
+        if (!headerContainer) {
+            console.log('⚠️ Elemento header-container não encontrado, criando fallback');
+            headerContainer = document.createElement('div');
+            headerContainer.id = 'header-container';
+            document.body.prepend(headerContainer);
+        }
+        
+        if (headerContainer) {
+            console.log('✅ Adicionando header ao DOM');
+            headerContainer.innerHTML = header;
+        }
+        
+        let sidebarContainer = document.getElementById('sidebar-container');
+        if (!sidebarContainer) {
+            console.log('⚠️ Elemento sidebar-container não encontrado, criando fallback');
+            sidebarContainer = document.createElement('div');
+            sidebarContainer.id = 'sidebar-container';
+            
+            // Tentar encontrar o elemento main para inserir antes dele
+            const mainContent = document.querySelector('main') || document.body.firstChild;
+            document.body.insertBefore(sidebarContainer, mainContent);
+        }
+        
+        if (sidebarContainer) {
+            console.log('✅ Adicionando sidebar ao DOM');
+            sidebarContainer.innerHTML = sidebar;
+        }
+        
+        // Configurar toggle do sidebar para dispositivos móveis
+        setupToggle();
+    }
+
+    // Configurar toggle do sidebar para dispositivos móveis
+    function setupToggle() {
+        console.log('🔄 Configurando toggle do sidebar...');
+        
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebar = document.getElementById('sidebar');
+        
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+        }
+        
+        if (sidebarClose && sidebar) {
+            sidebarClose.addEventListener('click', function() {
+                sidebar.classList.add('-translate-x-full');
+            });
+        }
+        
+        // Configurar logout
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                window.location.href = '/index.html';
+            });
+        }
+    }
+
+    // Carregar quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOMContentLoaded - Iniciando template inline');
+        loadInlineTemplate();
+    });
+</script>
+
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="flex h-screen bg-gray-100">
@@ -242,7 +397,7 @@
         </div>
     </div>
     
-    <script src="../../js/template.js"></script>
+    
     <script src="../../js/turma.js"></script>
 </body>
 </html> 

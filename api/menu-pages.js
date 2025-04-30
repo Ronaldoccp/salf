@@ -1,25 +1,9 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Node-webkit-based module test</title>
-<script>
-function nwModuleTest(){
-   var util = require('util');
-   var moduleFolder = require('nw.gui').App.argv[0];
-   try {
-      require(moduleFolder);
-   } catch(e) {
-      if( process.platform !== 'win32' ){
-         util.log('nw-pre-gyp error:');
-         util.log(e.stack);
-      }
-      process.exit(1);
-   }
-   process.exit(0);
-}
-</script>
+// Script para aplicar o menu inline em todas as páginas HTML
+const fs = require('fs');
+const path = require('path');
 
+// Template inline a ser inserido em cada página
+const templateScript = `
 <!-- Template inline para garantir o menu -->
 <script>
     // Template inline para o SALF - versão simplificada
@@ -37,7 +21,7 @@ function nwModuleTest(){
         localStorage.setItem('isLoggedIn', 'true');
         
         // Estrutura do cabeçalho
-        const header = `
+        const header = \`
             <div class="bg-white border-b px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center">
                     <button id="sidebar-toggle" class="text-gray-600 focus:outline-none lg:hidden mr-2">
@@ -47,21 +31,21 @@ function nwModuleTest(){
                 </div>
                 <div class="flex items-center">
                     <div class="mr-4 text-sm text-gray-600">
-                        <span class="font-semibold">${userEmail}</span>
-                        <span class="ml-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${userRole}</span>
+                        <span class="font-semibold">\${userEmail}</span>
+                        <span class="ml-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">\${userRole}</span>
                     </div>
                     <button id="logout-btn" class="text-red-600 hover:text-red-800 focus:outline-none">
                         <i class="fas fa-sign-out-alt"></i> Sair
                     </button>
                 </div>
             </div>
-        `;
+        \`;
         
         // Detectar a página atual para destacar o item de menu correspondente
         const currentPage = window.location.href;
         
         // Estrutura do sidebar
-        const sidebar = `
+        const sidebar = \`
             <div id="sidebar" class="bg-blue-800 text-white w-64 space-y-1 py-4 fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 -translate-x-full transition duration-200 ease-in-out z-10">
                 <div class="flex items-center justify-between px-4 mb-4">
                     <div class="flex items-center">
@@ -72,37 +56,37 @@ function nwModuleTest(){
                     </button>
                 </div>
                 <nav>
-                    <a href="/index.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('index.html') || currentPage.endsWith('/') ? 'bg-blue-700' : ''}">
+                    <a href="/index.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('index.html') || currentPage.endsWith('/') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-chart-bar w-6"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="/pages/escola/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/escola/') ? 'bg-blue-700' : ''}">
+                    <a href="/pages/escola/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('/escola/') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-school w-6"></i>
                         <span>Escolas</span>
                     </a>
-                    <a href="/pages/turma/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/turma/') ? 'bg-blue-700' : ''}">
+                    <a href="/pages/turma/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('/turma/') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-users w-6"></i>
                         <span>Turmas</span>
                     </a>
-                    <a href="/pages/aluno/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/aluno/') ? 'bg-blue-700' : ''}">
+                    <a href="/pages/aluno/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('/aluno/') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-user-graduate w-6"></i>
                         <span>Alunos</span>
                     </a>
-                    <a href="/pages/avaliacao/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/listar.html') ? 'bg-blue-700' : ''}">
+                    <a href="/pages/avaliacao/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('/avaliacao/listar.html') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-clipboard-check w-6"></i>
                         <span>Avaliações</span>
                     </a>
-                    <a href="/pages/usuario/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/usuario/') ? 'bg-blue-700' : ''}">
+                    <a href="/pages/usuario/listar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('/usuario/') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-user-cog w-6"></i>
                         <span>Usuários</span>
                     </a>
-                    <a href="/pages/avaliacao/realizar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition ${currentPage.includes('/avaliacao/realizar.html') ? 'bg-blue-700' : ''}">
+                    <a href="/pages/avaliacao/realizar.html" class="flex items-center px-4 py-3 hover:bg-blue-700 transition \${currentPage.includes('/avaliacao/realizar.html') ? 'bg-blue-700' : ''}">
                         <i class="fas fa-tasks w-6"></i>
                         <span>Realizar Avaliação</span>
                     </a>
                 </nav>
             </div>
-        `;
+        \`;
         
         // Adicionar o template ao DOM
         let headerContainer = document.getElementById('header-container');
@@ -173,9 +157,74 @@ function nwModuleTest(){
         loadInlineTemplate();
     });
 </script>
+`;
 
-</head>
-<body onload="nwModuleTest()">
-<h1>Node-webkit-based module test</h1>
-</body>
-</html>
+// Função para processar um arquivo HTML
+function processHtmlFile(filePath) {
+    console.log(`Processando: ${filePath}`);
+    try {
+        // Lê o conteúdo do arquivo
+        let content = fs.readFileSync(filePath, 'utf8');
+        
+        // Verifica se o template já está no arquivo
+        if (content.includes('loadInlineTemplate()')) {
+            console.log(`  Template já existe em: ${filePath}`);
+            return;
+        }
+        
+        // Insere o script antes de </head>
+        content = content.replace('</head>', `${templateScript}\n</head>`);
+        
+        // Remove o script do template.js
+        content = content.replace('<script src="../../js/template.js"></script>', '');
+        content = content.replace('<script src="/js/template.js"></script>', '');
+        
+        // Escreve o conteúdo de volta ao arquivo
+        fs.writeFileSync(filePath, content, 'utf8');
+        console.log(`  ✅ Template inline adicionado a: ${filePath}`);
+    } catch (error) {
+        console.error(`  ❌ Erro ao processar ${filePath}:`, error.message);
+    }
+}
+
+// Função para percorrer diretórios recursivamente
+function processDirectory(directory) {
+    // Ignorar node_modules
+    if (directory.includes('node_modules')) {
+        console.log(`Ignorando diretório: ${directory}`);
+        return;
+    }
+    
+    const items = fs.readdirSync(directory);
+    
+    for (const item of items) {
+        const itemPath = path.join(directory, item);
+        const stat = fs.statSync(itemPath);
+        
+        if (stat.isDirectory()) {
+            // Se for um diretório, processa recursivamente
+            processDirectory(itemPath);
+        } else if (stat.isFile() && itemPath.endsWith('.html')) {
+            // Se for um arquivo HTML, processa
+            processHtmlFile(itemPath);
+        }
+    }
+}
+
+// Diretórios a processar
+const directories = [
+    path.join(__dirname, '../pages'),
+    path.join(__dirname, '..')  // Raiz para processar index.html
+];
+
+// Processar cada diretório
+console.log('🚀 Iniciando processamento dos arquivos HTML...');
+for (const directory of directories) {
+    processDirectory(directory);
+}
+console.log('✅ Processamento concluído!');
+
+module.exports = {
+    processHtmlFile,
+    processDirectory
+}; 
