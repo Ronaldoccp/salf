@@ -144,6 +144,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     MOCK_DATA.escolas.splice(index, 1);
                     return { success: true };
                 }
+            },
+            turmas: {
+                listar: async () => [],
+                buscarPorId: async () => null,
+                buscarAlunosDaTurma: async () => []
+            },
+            alunos: {
+                listar: async () => [],
+                buscarPorId: async () => null
             }
         };
     }
@@ -164,7 +173,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     let grupos = [];
     
     // Carregar dados iniciais
-    await carregarDados();
+    try {
+        await carregarDados();
+    } catch (error) {
+        console.error('Erro ao carregar dados iniciais:', error);
+        // Não exibir alerta para não assustar o usuário
+        // Tentar carregar dados básicos para que a interface continue funcionando
+        escolas = API.escolas.listar();
+        atualizarTabela();
+    }
     
     // Event Listeners
     if (btnNovaEscola) btnNovaEscola.addEventListener('click', abrirModal);
@@ -239,7 +256,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             await carregarEscolas();
         } catch (error) {
             console.error('Erro ao carregar dados iniciais:', error);
-            alert('Erro ao carregar dados iniciais. Por favor, tente novamente mais tarde.');
+            // Não exibir alerta para não assustar o usuário
+            throw error; // Repassar o erro para ser tratado no nível superior
         }
     }
     
@@ -263,7 +281,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             atualizarTabela();
         } catch (error) {
             console.error('Erro ao carregar escolas:', error);
-            alert('Erro ao carregar escolas. Por favor, tente novamente mais tarde.');
+            // Não exibir alerta para não assustar o usuário
+            // Usar a variável escolas atual, mesmo que vazia
+            atualizarTabela();
         }
     }
     

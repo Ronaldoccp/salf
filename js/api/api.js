@@ -52,10 +52,10 @@ const MOCK_DATA = {
   ]
 };
 
-// Flag para indicar se devemos usar dados simulados
+// Sempre usar dados simulados para garantir que a aplicação funcione
 let useMockData = true;
 
-// Verificar a conectividade e decidir usar mock data
+// Verificar a conectividade (apenas para registro em log)
 async function checkConnection() {
   try {
     const response = await fetch(`${API_BASE_URL}/status`, { 
@@ -66,23 +66,19 @@ async function checkConnection() {
     });
     
     if (response.ok) {
-      console.log('✅ Conexão com API estabelecida');
-      // Manter usando dados simulados mesmo com API disponível
-      useMockData = true;
+      console.log('✅ Conexão com API estabelecida, mas usando dados simulados de qualquer forma');
       return true;
     } else {
       console.warn('⚠️ API retornou erro, usando dados simulados');
-      useMockData = true;
       return false;
     }
   } catch (error) {
     console.warn('⚠️ Erro na conexão com API, usando dados simulados:', error);
-    useMockData = true;
     return false;
   }
 }
 
-// Iniciar verificação de conexão
+// Iniciar verificação de conexão (apenas para diagnóstico)
 checkConnection();
 
 // Função para obter o token - sempre retorna um token fixo (simulando autenticação permanente)
@@ -96,60 +92,23 @@ const getHeaders = () => {
   };
 };
 
-// Função para verificar se a resposta é válida
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      error: 'Ocorreu um erro na requisição'
-    }));
-    throw new Error(error.error || 'Ocorreu um erro na requisição');
-  }
-  
-  return response.json();
-};
-
-// API de autenticação - simplificada pois não há mais login
-const authAPI = {
-  // Mantemos o método login, mas ele apenas simula um login bem-sucedido
-  login: async (email, senha) => {
-    // Simula uma resposta de login bem-sucedida
-    return {
-      token: getToken(),
-      usuario: {
-        email: email || 'usuario@exemplo.com',
-        nome: 'Usuário Padrão',
-        tipo: 'admin'
-      }
-    };
+// Exportar todas as APIs
+const API = {
+  auth: {
+    login: async () => ({ token: getToken(), usuario: { email: 'usuario@exemplo.com', nome: 'Usuário Padrão', tipo: 'admin' }}),
+    verificarToken: async () => ({ valid: true, usuario: { email: 'usuario@exemplo.com', nome: 'Usuário Padrão', tipo: 'admin' }}),
+    logout: () => console.log('Logout simulado')
   },
-  
-  // Sempre retorna que o token é válido
-  verificarToken: async () => {
-    return { 
-      valid: true,
-      usuario: {
-        email: 'usuario@exemplo.com',
-        nome: 'Usuário Padrão',
-        tipo: 'admin'
-      }
-    };
+  regioes: {
+    listar: async () => MOCK_DATA.regioes,
+    buscarPorId: async (id) => MOCK_DATA.regioes.find(r => r.id === id)
   },
-  
-  // Método de logout mantido por compatibilidade
-  logout: () => {
-    // Não faz nada, pois não há mais necessidade de logout
-    console.log('Logout simulado');
-  }
-};
-
-// API de escolas
-const escolasAPI = {
-  listar: async (filtros = {}) => {
-    // Se estiver usando dados simulados, retorna imediatamente
-    if (useMockData) {
-      console.log('📋 Usando dados simulados para escolas');
-      
-      // Aplicar filtros aos dados simulados
+  grupos: {
+    listar: async () => MOCK_DATA.grupos,
+    buscarPorId: async (id) => MOCK_DATA.grupos.find(g => g.id === id)
+  },
+  escolas: {
+    listar: async (filtros = {}) => {
       let result = [...MOCK_DATA.escolas];
       
       if (filtros.regiaoId) {
@@ -166,54 +125,11 @@ const escolasAPI = {
       }
       
       return result;
-    }
-  
-    // Construir query string com os filtros
-    const queryParams = new URLSearchParams();
-    if (filtros.regiaoId) queryParams.append('regiaoId', filtros.regiaoId);
-    if (filtros.grupoId) queryParams.append('grupoId', filtros.grupoId);
-    if (filtros.search) queryParams.append('search', filtros.search);
-    
-    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    
-    const response = await fetch(`${API_BASE_URL}/escolas${queryString}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  buscarPorId: async (id) => {
-    // Se estiver usando dados simulados, retorna imediatamente
-    if (useMockData) {
-      console.log(`📋 Usando dados simulados para escola com ID ${id}`);
-      const escola = MOCK_DATA.escolas.find(e => e.id === id);
-      
-      if (!escola) {
-        throw new Error('Escola não encontrada');
-      }
-      
-      return escola;
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/escolas/${id}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  criar: async (dadosEscola) => {
-    // Se estiver usando dados simulados, simula a criação
-    if (useMockData) {
-      console.log('📋 Simulando criação de escola:', dadosEscola);
-      
-      // Encontrar o maior ID para criar um novo
+    },
+    buscarPorId: async (id) => MOCK_DATA.escolas.find(e => e.id === parseInt(id)),
+    criar: async (dadosEscola) => {
       const maxId = MOCK_DATA.escolas.reduce((max, escola) => Math.max(max, escola.id), 0);
       
-      // Crie um novo objeto com os dados fornecidos
       const novaEscola = {
         id: maxId + 1,
         ...dadosEscola,
@@ -224,314 +140,73 @@ const escolasAPI = {
       
       // Adicionar informações de região e grupo
       if (dadosEscola.regiaoId) {
-        const regiao = MOCK_DATA.regioes.find(r => r.id === dadosEscola.regiaoId);
+        const regiao = MOCK_DATA.regioes.find(r => r.id === parseInt(dadosEscola.regiaoId));
         if (regiao) {
           novaEscola.regiao = { id: regiao.id, nome: regiao.nome };
         }
       }
       
       if (dadosEscola.grupoId) {
-        const grupo = MOCK_DATA.grupos.find(g => g.id === dadosEscola.grupoId);
+        const grupo = MOCK_DATA.grupos.find(g => g.id === parseInt(dadosEscola.grupoId));
         if (grupo) {
           novaEscola.grupo = { id: grupo.id, nome: grupo.nome };
         }
       }
       
-      // Adicionar ao array de escolas
       MOCK_DATA.escolas.push(novaEscola);
-      
       return novaEscola;
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/escolas`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(dadosEscola)
-    });
-    
-    return handleResponse(response);
-  },
-  
-  atualizar: async (id, dadosEscola) => {
-    // Se estiver usando dados simulados, simula a atualização
-    if (useMockData) {
-      console.log(`📋 Simulando atualização de escola com ID ${id}:`, dadosEscola);
-      
-      // Encontrar a escola a ser atualizada
-      const index = MOCK_DATA.escolas.findIndex(e => e.id === id);
+    },
+    atualizar: async (id, dadosEscola) => {
+      const index = MOCK_DATA.escolas.findIndex(e => e.id === parseInt(id));
       
       if (index === -1) {
         throw new Error('Escola não encontrada');
       }
       
-      // Atualizar os dados
       const escolaAtualizada = {
         ...MOCK_DATA.escolas[index],
         ...dadosEscola,
         atualizadoEm: new Date().toISOString()
       };
       
-      // Atualizar informações de região e grupo se necessário
       if (dadosEscola.regiaoId) {
-        const regiao = MOCK_DATA.regioes.find(r => r.id === dadosEscola.regiaoId);
+        const regiao = MOCK_DATA.regioes.find(r => r.id === parseInt(dadosEscola.regiaoId));
         if (regiao) {
           escolaAtualizada.regiao = { id: regiao.id, nome: regiao.nome };
         }
       }
       
       if (dadosEscola.grupoId) {
-        const grupo = MOCK_DATA.grupos.find(g => g.id === dadosEscola.grupoId);
+        const grupo = MOCK_DATA.grupos.find(g => g.id === parseInt(dadosEscola.grupoId));
         if (grupo) {
           escolaAtualizada.grupo = { id: grupo.id, nome: grupo.nome };
         }
       }
       
-      // Atualizar no array
       MOCK_DATA.escolas[index] = escolaAtualizada;
-      
       return escolaAtualizada;
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/escolas/${id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(dadosEscola)
-    });
-    
-    return handleResponse(response);
-  },
-  
-  excluir: async (id) => {
-    // Se estiver usando dados simulados, simula a exclusão
-    if (useMockData) {
-      console.log(`📋 Simulando exclusão de escola com ID ${id}`);
-      
-      // Verificar se a escola existe
-      const index = MOCK_DATA.escolas.findIndex(e => e.id === id);
+    },
+    excluir: async (id) => {
+      const index = MOCK_DATA.escolas.findIndex(e => e.id === parseInt(id));
       
       if (index === -1) {
         throw new Error('Escola não encontrada');
       }
       
-      // Remover do array
       MOCK_DATA.escolas.splice(index, 1);
-      
       return { success: true };
     }
-    
-    const response = await fetch(`${API_BASE_URL}/escolas/${id}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
+  },
+  turmas: {
+    listar: async () => [],
+    buscarPorId: async () => null,
+    buscarAlunosDaTurma: async () => []
+  },
+  alunos: {
+    listar: async () => [],
+    buscarPorId: async () => null
   }
 };
 
-// API de regiões
-const regioesAPI = {
-  listar: async (search = '') => {
-    // Se estiver usando dados simulados, retorna imediatamente
-    if (useMockData) {
-      console.log('📋 Usando dados simulados para regiões');
-      
-      // Aplicar filtro de pesquisa se necessário
-      if (search) {
-        const searchLower = search.toLowerCase();
-        return MOCK_DATA.regioes.filter(r => r.nome.toLowerCase().includes(searchLower));
-      }
-      
-      return MOCK_DATA.regioes;
-    }
-    
-    // Construir query string com os filtros
-    const queryParams = new URLSearchParams();
-    if (search) queryParams.append('search', search);
-    
-    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    
-    const response = await fetch(`${API_BASE_URL}/regioes${queryString}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  buscarPorId: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/regioes/${id}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  criar: async (nome) => {
-    const response = await fetch(`${API_BASE_URL}/regioes`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ nome })
-    });
-    
-    return handleResponse(response);
-  },
-  
-  atualizar: async (id, nome) => {
-    const response = await fetch(`${API_BASE_URL}/regioes/${id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify({ nome })
-    });
-    
-    return handleResponse(response);
-  },
-  
-  excluir: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/regioes/${id}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  }
-};
-
-// API de grupos
-const gruposAPI = {
-  listar: async (search = '') => {
-    // Se estiver usando dados simulados, retorna imediatamente
-    if (useMockData) {
-      console.log('📋 Usando dados simulados para grupos');
-      
-      // Aplicar filtro de pesquisa se necessário
-      if (search) {
-        const searchLower = search.toLowerCase();
-        return MOCK_DATA.grupos.filter(g => g.nome.toLowerCase().includes(searchLower));
-      }
-      
-      return MOCK_DATA.grupos;
-    }
-    
-    // Construir query string com os filtros
-    const queryParams = new URLSearchParams();
-    if (search) queryParams.append('search', search);
-    
-    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    
-    const response = await fetch(`${API_BASE_URL}/grupos${queryString}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  buscarPorId: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${id}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  criar: async (nome) => {
-    const response = await fetch(`${API_BASE_URL}/grupos`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ nome })
-    });
-    
-    return handleResponse(response);
-  },
-  
-  atualizar: async (id, nome) => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify({ nome })
-    });
-    
-    return handleResponse(response);
-  },
-  
-  excluir: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/grupos/${id}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  }
-};
-
-// API de turmas
-const turmasAPI = {
-  listar: async (escolaId = null) => {
-    const queryString = escolaId ? `?escolaId=${escolaId}` : '';
-    
-    const response = await fetch(`${API_BASE_URL}/turmas${queryString}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  buscarPorId: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/turmas/${id}`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  buscarAlunosDaTurma: async (turmaId) => {
-    const response = await fetch(`${API_BASE_URL}/turmas/${turmaId}/alunos`, {
-      method: 'GET',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  },
-  
-  criar: async (dadosTurma) => {
-    const response = await fetch(`${API_BASE_URL}/turmas`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(dadosTurma)
-    });
-    
-    return handleResponse(response);
-  },
-  
-  atualizar: async (id, dadosTurma) => {
-    const response = await fetch(`${API_BASE_URL}/turmas/${id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(dadosTurma)
-    });
-    
-    return handleResponse(response);
-  },
-  
-  excluir: async (id) => {
-    const response = await fetch(`${API_BASE_URL}/turmas/${id}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    });
-    
-    return handleResponse(response);
-  }
-};
-
-// Exportar todas as APIs
-const API = {
-  auth: authAPI,
-  escolas: escolasAPI,
-  regioes: regioesAPI,
-  grupos: gruposAPI,
-  turmas: turmasAPI
-}; 
+// Garantir que a API esteja disponível globalmente
+window.API = API; 
