@@ -78,6 +78,15 @@ if (process.env.NODE_ENV === 'production') {
   const staticPath = path.join(__dirname, '../');
   console.log(`Serving static files from: ${staticPath}`);
   app.use(express.static(staticPath));
+  
+  // Servir também os arquivos da pasta pages
+  app.use('/pages', express.static(path.join(__dirname, '../pages')));
+  
+  // Servir também os arquivos da pasta js
+  app.use('/js', express.static(path.join(__dirname, '../js')));
+  
+  // Servir também os arquivos da pasta css
+  app.use('/css', express.static(path.join(__dirname, '../css')));
 }
 
 // Documentação Swagger
